@@ -11,9 +11,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://admin:password123@db:5432/db'
 app.config['SECRET_KEY'] = 'secret-key-test-123'
 
-
 db = SQLAlchemy(app)
-
 
 def get_requesting_user() -> Tuple[str, str] | None:
     auth_header = request.headers.get("Authorization")
@@ -24,7 +22,6 @@ def get_requesting_user() -> Tuple[str, str] | None:
     token = auth_header.removeprefix('Bearer ').strip()
     claims = jwt.decode(token, options={'verify_signature': False})
     return claims['user_id'], claims['user_type']
-
 
 def transform_price(price: int, user_type: str) -> int:
     if user_type == "Student":
@@ -131,6 +128,25 @@ def list_reservations():
     for reservation in reservations]
 
     return jsonify(data), 200
+    
+@app.post('/reservations')
+def create_reservation():
+    data = request.get_json()
+    trip_id = data.get('trip_id')
+    user_id = data.get('user_id')
+
+    trip = Trip.query.get(trip_id)
+    if not trip:
+        return {"error": "Trip not found"}, 404
+    
+    if len(trip.reservations) >= trip.capacity:
+        return {"error": "No more seats available"}, 400
+
+    new_res = Reservation(trip_id=trip_id, user_id=user_id)
+    db.session.add(new_res)
+    db.session.commit()
+
+    return {"message": "Success", "reservation_id": new_res.id}, 201
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
