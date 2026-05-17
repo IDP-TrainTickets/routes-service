@@ -32,3 +32,9 @@ jobs:
           tags: |
             ${{ vars.DOCKERHUB_NAMESPACE }}/${{ github.event.repository.name }}:latest
             ${{ vars.DOCKERHUB_NAMESPACE }}/${{ github.event.repository.name }}:${{ github.sha }}
+  deploy-andrei:
+    runs-on: ["self-hosted", "andrei"]
+    if: github.actor == 'andreistan26'
+    needs: docker
+    steps:
+      - run: curl -X POST http://127.0.0.1:9000/api/webhooks/9647dd0e-51f1-4a4a-a7fc-0478f15d944e
