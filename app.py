@@ -1,8 +1,6 @@
 from typing import List, Tuple
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import UniqueConstraint
-from sqlalchemy.orm import RelationshipProperty
 import jwt
 
 app = Flask(__name__)
@@ -58,7 +56,7 @@ class Trip(db.Model):
     )
     trip_day = db.Column(db.Date, nullable=False)
     capacity = db.Column(db.Integer, nullable=False)
-    route: RelationshipProperty[Route]= db.relationship("Route", back_populates="trips")
+    route = db.relationship("Route", back_populates="trips")
     reservations = db.relationship("Reservation", back_populates="trip")
 
 
@@ -74,8 +72,8 @@ class Reservation(db.Model):
         db.ForeignKey("user.id"),
         nullable=False,
     )
-    trip: RelationshipProperty[Trip] = db.relationship("Trip", back_populates="reservations")
-    user: RelationshipProperty[User] = db.relationship("User", back_populates="reservations")
+    trip = db.relationship("Trip", back_populates="reservations")
+    user = db.relationship("User", back_populates="reservations")
 
 
 # example: /routes?from_station=Bucharest"
