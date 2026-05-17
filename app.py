@@ -34,7 +34,7 @@ class User(db.Model):
     username = db.Column(db.String(50), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     user_type = db.Column(db.String(20), default='Adult')
-
+    reservations = db.relationship("Reservation", back_populates="user")
 
 class Route(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,7 +86,44 @@ def list_routes():
     _, user_type = user
     
     from_station = request.args.get("from_station")
+    to_station = request.args.get("to_station")
+    day_str = request.args.get("day")
     query = Route.query
+    
+    if from_station and to_station and day_str:
+        try:
+            target_day = datetime.strptime(day_str, "%Y-%m-%d").date()
+        except ValueError:
+            return {"error": "Invalid date format. Use YYYY-MM-DD"}, 400
+
+        trips = Trip.query.join(Route).filter(
+            Route.from_station == from_station,
+            Route.to_station == to_station,
+            Trip.trip_day == target_day
+        ).all()
+
+        data = []
+        for trip in trips:
+            available_seats = trip.capacity - len(trip.reservations)
+            dummy_date = datetime.today()
+            leave_dt = datetime.combine(dummy_date, trip.route.leave_at)
+            arrive_dt = datetime.combine(dummy_date, trip.route.arrive_by)
+            if arrive_dt < leave_dt:
+                from datetime import timedelta
+                arrive_dt += timedelta(days=1)
+            duration_minutes = int((arrive_dt - leave_dt).total_seconds() / 60)
+
+            data.append({
+                "trip_id": trip.id,
+                "from_station": trip.route.from_station,
+                "to_station": trip.route.to_station,
+                "leave_at": trip.route.leave_at.strftime("%H:%M:%S"),
+                "arrive_by": trip.route.arrive_by.strftime("%H:%M:%S"),
+                "duration_minutes": duration_minutes,
+                "available_seats": available_seats,
+                "price": transform_price(trip.route.price, user_type),
+            })
+        return jsonify(data), 200
 
     if from_station is not None:
         query = query.filter(Route.from_station == from_station)
