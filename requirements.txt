@@ -7,7 +7,7 @@ flask-sqlalchemy==3.1.1
 greenlet==3.4.0
 itsdangerous==2.2.0
 jinja2==3.1.6
-jwt==1.4.0
+PyJWT==2.10.1
 markupsafe==3.0.3
 psycopg2-binary==2.9.12
 pycparser==3.0
