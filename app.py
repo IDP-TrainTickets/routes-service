@@ -69,7 +69,7 @@ class Reservation(db.Model):
     )
     user_id = db.Column(
         db.Integer,
-        db.ForeignKey("user.id"),
+        db.ForeignKey("app_user.id"),
         nullable=False,
     )
     trip = db.relationship("Trip", back_populates="reservations")
