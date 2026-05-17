@@ -38,3 +38,10 @@ jobs:
     needs: docker
     steps:
       - run: curl -X POST http://127.0.0.1:9000/api/webhooks/9647dd0e-51f1-4a4a-a7fc-0478f15d944e
+      
+  deploy-iulian:
+    runs-on: ["self-hosted", "iulian"]
+    if: github.actor == 'iulianalexa'
+    needs: docker
+    steps:
+      - run: curl -X POST http://127.0.0.1:9000/api/webhooks/f2dc4f3e-c36e-4ef3-9f31-86c132374ad0
